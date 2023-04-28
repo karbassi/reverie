@@ -1,5 +1,4 @@
 import { Scene3D } from '@enable3d/phaser-extension'
-import * as THREE from 'three'
 
 export default class PreloadScene extends Scene3D {
   constructor() {
