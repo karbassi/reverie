@@ -2,18 +2,12 @@ import { Scene3D } from '@enable3d/phaser-extension'
 import * as THREE from 'three'
 
 export default class PreloadScene extends Scene3D {
-  terrace!: THREE.Group
-  player!: THREE.Group
-  bird!: THREE.Group
-
   constructor() {
     super({ key: 'PreloadScene' })
   }
 
   init() {
-    this.accessThirdDimension({ maxSubSteps: 10, fixedTimeStep: 1 / 120 })
-
-    this.third.renderer.outputEncoding = THREE.LinearEncoding
+    this.accessThirdDimension()
   }
 
   async preload() {
@@ -23,20 +17,21 @@ export default class PreloadScene extends Scene3D {
   }
 
   async create() {
+    // loads the gltf file and returns a promise
     const terraceObject = await this.third.load.gltf('terrace')
     const playerObject = await this.third.load.gltf('player')
     const birdObject = await this.third.load.gltf('bird')
 
+    // get the first scene from the gltf files
     const terraceScene = terraceObject.scenes[0]
     const playerScene = playerObject.scenes[0]
     const birdScene = birdObject.scenes[0]
 
+    // Call the MainScene and pass the loaded scenes
     this.scene.start('MainScene', {
       terraceScene: terraceScene,
       playerScene: playerScene,
       birdScene: birdScene,
     })
   }
-
-  update() {}
 }
