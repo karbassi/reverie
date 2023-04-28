@@ -18,9 +18,7 @@ export default class MainScene extends Scene3D {
     inTransition: boolean
     offset: null
   }
-  terrace!: ExtendedObject3D
-  player!: ExtendedObject3D
-  bird!: ExtendedObject3D
+
   controls!: ThirdPersonControls
   canJump = true
   canMove = false
@@ -39,27 +37,61 @@ export default class MainScene extends Scene3D {
   thetaPlayer: number
   speed = 4
 
+  // Scenes
+  terraceScene!: THREE.Group
+  playerScene!: THREE.Group
+  birdScene!: THREE.Group
+
+  // Objects
+  terrace!: ExtendedObject3D
+  player!: ExtendedObject3D
+  bird!: ExtendedObject3D
+
   constructor() {
     super({ key: 'MainScene' })
   }
 
-  init() {
+  init(data: {
+    birdScene: THREE.Group
+    playerScene: THREE.Group
+    terraceScene: THREE.Group
+  }) {
+    const { birdScene, playerScene, terraceScene } = data
     this.accessThirdDimension({ maxSubSteps: 10, fixedTimeStep: 1 / 120 })
 
     this.third.renderer.outputEncoding = THREE.LinearEncoding
+
+    this.terraceScene = terraceScene
+    this.playerScene = playerScene
+    this.birdScene = birdScene
   }
 
   preload() {}
 
   async create() {
+    // Create the world
     this.createWorld()
+
+    // Add the camera
     this.createCamera()
+
+    // Create the scene (terrace)
     this.createScene()
+
+    // Create the player (idle)
     this.createPlayer()
-    this.addControls()
-    this.addCollisions()
+
+    // Create the bird
     this.addBirds()
-    //this.addCamera()
+
+    // Add controls
+    this.addControls()
+
+    // Add collisions
+    this.addCollisions()
+
+    // TODO: Add camera and camera movement
+    // this.addCamera()
     // this.moveCamera()
   }
 
@@ -100,163 +132,170 @@ export default class MainScene extends Scene3D {
   }
 
   private createScene() {
-    this.third.load.gltf('/assets/glb/terrace.glb').then((object) => {
-      const scene = object.scenes[0]
+    // Create terrace
+    this.terrace = new ExtendedObject3D()
+    this.terrace.name = 'scene'
 
-      // Create terrace
-      this.terrace = new ExtendedObject3D()
-      this.terrace.name = 'scene'
+    // Add it to the scene
+    this.terrace.add(this.terraceScene)
+    this.third.add.existing(this.terrace)
 
-      // Add it to the scene
-      this.terrace.add(scene)
-      this.third.add.existing(this.terrace)
+    // TODO: add animations
+    // object.animations.forEach((anim, i) => {
+    //   this.terrace.mixer = this.third.animationMixers.create(this.terrace)
+    //   // overwrite the action to be an array of actions
+    //   this.terrace.action = []
+    //   this.terrace.action[i] = this.terrace.mixer.clipAction(anim)
+    //   this.terrace.action[i].play()
+    // })
 
-      // TODO: add animations
-      // object.animations.forEach((anim, i) => {
-      //   this.terrace.mixer = this.third.animationMixers.create(this.terrace)
-      //   // overwrite the action to be an array of actions
-      //   this.terrace.action = []
-      //   this.terrace.action[i] = this.terrace.mixer.clipAction(anim)
-      //   this.terrace.action[i].play()
-      // })
+    this.terrace.traverse((child: any) => {
+      if (!child.isMesh) {
+        return
+      }
 
-      this.terrace.traverse((child: any) => {
-        if (!child.isMesh) {
-          return
-        }
+      child.castShadow = child.receiveShadow = false
+      child.material.metalness = 0
+      child.material.roughness = 1
 
-        child.castShadow = child.receiveShadow = false
-        child.material.metalness = 0
-        child.material.roughness = 1
-
-        if (/mesh/i.test(child.name)) {
-          this.third.physics.add.existing(child, {
-            shape: 'concave',
-            mass: 0,
-            collisionFlags: 1,
-            autoCenter: false,
-          })
-          child.body.setAngularFactor(0, 0, 0)
-          child.body.setLinearFactor(0, 0, 0)
-        }
-      })
+      if (/mesh/i.test(child.name)) {
+        this.third.physics.add.existing(child, {
+          shape: 'concave',
+          mass: 0,
+          collisionFlags: 1,
+          autoCenter: false,
+        })
+        child.body.setAngularFactor(0, 0, 0)
+        child.body.setLinearFactor(0, 0, 0)
+      }
     })
   }
 
   private createPlayer() {
-    this.third.load.gltf('public/assets/glb/idle.glb').then((object) => {
-      const scene = object.scenes[0]
+    // Create player
+    this.player = new ExtendedObject3D()
+    this.player.name = 'scene'
 
-      this.player = new ExtendedObject3D()
-      this.player.name = 'scene'
-      this.player.add(scene)
-      this.third.add.existing(this.player)
+    // Add it to the scene
+    this.player.add(this.playerScene)
+    this.third.add.existing(this.player)
 
-      // Rotate the player
-      this.player.rotateY(Math.PI + 0.1)
-      // this.player.rotation.set(0, Math.PI * 1.5, 0)
-      this.player.position.set(0, 0, 0)
+    // Rotate the player
+    this.player.rotateY(Math.PI + 0.1)
+    // this.player.rotation.set(0, Math.PI * 1.5, 0)
+    this.player.position.set(0, 0, 0)
 
-      //set scale
-      this.player.scale.set(2, 2, 2)
+    //set scale
+    this.player.scale.set(2, 2, 2)
 
-      //add shadow
-      this.player.traverse((child) => {
-        if (!child.isMesh) {
-          return
-        }
+    //add shadow
+    this.player.traverse((child) => {
+      if (!child.isMesh) {
+        return
+      }
 
-        child.castShadow = true
-        child.receiveShadow = true
-        child.material.roughness = 1
-        child.material.metalness = 0
-      })
-
-      this.third.animationMixers.add(this.player.anims.mixer)
-      object.animations.forEach((animation) => {
-        if (animation.name) {
-          this.player.anims.add(animation.name, animation)
-        }
-      })
-
-      this.player.anims.play('idle')
-
-      //Add the player to the scene with a body
-      this.third.add.existing(this.player)
-      this.third.physics.add.existing(this.player, {
-        shape: 'box',
-        height: 1,
-        width: 0.5,
-        depth: 0.4,
-        offset: { y: -1, z: 1.5 },
-      })
-      //this.player.body.setFriction(0.8)
-      //this.player.body.setAngularFactor(-10, -10, 0)
-
-      // https://docs.panda3d.org/1.10/python/programming/physics/bullet/ccd
-      this.player.body.setCcdMotionThreshold(1e-7)
-      this.player.body.setCcdSweptSphereRadius(0.25)
+      child.castShadow = true
+      child.receiveShadow = true
+      child.material.roughness = 1
+      child.material.metalness = 0
     })
+
+    this.third.animationMixers.add(this.player.anims.mixer)
+
+    this.playerScene.animations.forEach((animation) => {
+      if (animation.name) {
+        this.player.anims.add(animation.name, animation)
+      }
+    })
+
+    this.player.anims.play('idle')
+
+    //Add the player to the scene with a body
+    this.third.add.existing(this.player)
+    this.third.physics.add.existing(this.player, {
+      shape: 'box',
+      height: 1,
+      width: 0.5,
+      depth: 0.4,
+      offset: { y: -1, z: 1.5 },
+    })
+    //this.player.body.setFriction(0.8)
+    //this.player.body.setAngularFactor(-10, -10, 0)
+
+    // https://docs.panda3d.org/1.10/python/programming/physics/bullet/ccd
+    this.player.body.setCcdMotionThreshold(1e-7)
+    this.player.body.setCcdSweptSphereRadius(0.25)
   }
 
   private addBirds() {
-    this.third.load.gltf('public/assets/glb/bird.glb').then((object) => {
-      const scene = object.scenes[0]
+    // Create bird
+    this.bird = new ExtendedObject3D()
+    this.bird.name = 'scene'
 
-      this.bird = new ExtendedObject3D()
-      this.bird.name = 'scene'
-      this.bird.add(scene)
-      this.third.add.existing(this.bird)
+    // Add it to the scene
+    this.bird.add(this.birdScene)
+    this.third.add.existing(this.bird)
 
-      this.bird.position.set(1, 1, 1)
+    // Set position
+    this.bird.position.set(1, 1, 1)
 
-      //add shadow
-      this.bird.traverse((child) => {
-        if (!child.isMesh) {
-          return
-        }
+    //add shadow
+    this.bird.traverse((child) => {
+      if (!child.isMesh) {
+        return
+      }
 
-        child.castShadow = true
-        child.receiveShadow = true
-        child.material.roughness = 1
-        child.material.metalness = 0
-      })
-
-      // this.third.animationMixers.add(this.bird.anims.mixer)
-      // object.animations.forEach((animation) => {
-      //   if (animation.name) {
-      //     this.bird.anims.add(animation.name, animation)
-      //   }
-      // })
-
-      this.bird.anims.play('idle')
-
-      //Add the player to the scene with a body
-      // this.third.add.existing(this.bird)
-      // this.third.physics.add.existing(this.bird, {
-      //   shape: 'box',
-      //   height: 0.25,
-      //   width: 0.25,
-      //   depth: 0.25,
-      //   offset: { y: -1, z: 0.25 },
-      // })
-      //this.bird.body.setFriction(0.8)
-      //this.bird.body.setAngularFactor(-10, -10, 0)
-
-      // https://docs.panda3d.org/1.10/python/programming/physics/bullet/ccd
-      this.bird.body.setCcdMotionThreshold(1e-7)
-      this.bird.body.setCcdSweptSphereRadius(0.25)
+      child.castShadow = true
+      child.receiveShadow = true
+      child.material.roughness = 1
+      child.material.metalness = 0
     })
+
+    // this.third.animationMixers.add(this.bird.anims.mixer)
+    // object.animations.forEach((animation) => {
+    //   if (animation.name) {
+    //     this.bird.anims.add(animation.name, animation)
+    //   }
+    // })
+
+    this.bird.anims.play('idle')
+
+    //Add the player to the scene with a body
+    // this.third.add.existing(this.bird)
+    // this.third.physics.add.existing(this.bird, {
+    //   shape: 'box',
+    //   height: 0.25,
+    //   width: 0.25,
+    //   depth: 0.25,
+    //   offset: { y: -1, z: 0.25 },
+    // })
+    //this.bird.body.setFriction(0.8)
+    //this.bird.body.setAngularFactor(-10, -10, 0)
+
+    // https://docs.panda3d.org/1.10/python/programming/physics/bullet/ccd
+    // this.bird.body.setCcdMotionThreshold(1e-7)
+    // this.bird.body.setCcdSweptSphereRadius(0.25)
   }
 
   private addCollisions() {
     // collision between player and bird (will set body.checkCollisions = true, on the player and the bird)
+
+    if (!this.player) {
+      throw new Error('Player not created')
+    }
+
+    if (!this.bird) {
+      throw new Error('Bird not created')
+    }
+
     this.third.physics.add.collider(this.player, this.bird, (event) => {
       console.log(`player and bird: ${event}`)
     })
+
     this.player.body.on.collision((otherObject, event) => {
-      if (otherObject.name !== 'ground')
+      if (otherObject.name !== 'ground') {
         console.log(`player and ${otherObject.name}: ${event}`)
+      }
     })
   }
 
@@ -358,14 +397,13 @@ export default class MainScene extends Scene3D {
         this.moveTop = 0
       }
 
-      this.playerTurn()
-      this.playerMove()
-      this.playerJump()
+      // this.playerTurn()
+      // this.playerMove()
+      // this.playerJump()
     }
   }
 
   playerTurn() {
-    
     //Player Turn
 
     const v3 = new THREE.Vector3()
@@ -398,7 +436,7 @@ export default class MainScene extends Scene3D {
     //   return
     // }
 
-//Player Move
+    //Player Move
 
     if (this.keys.w.isDown) {
       this.playerMoveForward()
