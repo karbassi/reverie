@@ -21,10 +21,10 @@ export default class MainScene extends Scene3D {
   moveTop = 0
   moveRight = 0
 
-  rotation: THREE.Vector3
-  theta: number
-  rotationPlayer: THREE.Vector3
-  thetaPlayer: number
+  rotation: THREE.Vector3 | undefined
+  theta: number | undefined
+  rotationPlayer: THREE.Vector3 | undefined
+  thetaPlayer: number | undefined
   speed = 4
 
   // Controls
