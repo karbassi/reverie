@@ -262,7 +262,7 @@ export default class MainScene extends Scene3D {
 
   private addControls() {
     this.controls = new ThirdPersonControls(this.third.camera, this.player, {
-      offset: new THREE.Vector3(0, 0, 0),
+      offset: new THREE.Vector3(0, 5, 5),
       targetRadius: 3,
     })
 
