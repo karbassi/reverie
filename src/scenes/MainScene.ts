@@ -91,10 +91,6 @@ export default class MainScene extends Scene3D {
 
     // Add collisions
     this.addCollisions()
-
-    // TODO: Add camera and camera movement
-    // this.addCamera()
-    // this.moveCamera()
   }
 
   private async createWorld() {
@@ -113,23 +109,7 @@ export default class MainScene extends Scene3D {
   }
 
   private createCamera() {
-    // this.third.camera.setRotationFromQuaternion(new THREE.Quaternion(10, 10, 0, 0))
-    // const zoom = 10
-    // const w = this.cameras.main.width / zoom
-    // const h = this.cameras.main.height / zoom
-    // this.cams = {
-    //   ortho: this.third.cameras.orthographicCamera({
-    //     left: w / -2,
-    //     right: w / 2,
-    //     top: h / 2,
-    //     bottom: h / -2,
-    //   }),
-    //   perspective: this.third.camera,
-    //   active: 'perspective',
-    //   inTransition: false,
-    //   offset: null,
-    // }
-  }
+    }
 
   private createScene() {
     // Create terrace
@@ -139,15 +119,7 @@ export default class MainScene extends Scene3D {
     // Add it to the scene
     this.terrace.add(this.terraceScene)
     this.third.add.existing(this.terrace)
-
-    // TODO: add animations
-    // object.animations.forEach((anim, i) => {
-    //   this.terrace.mixer = this.third.animationMixers.create(this.terrace)
-    //   // overwrite the action to be an array of actions
-    //   this.terrace.action = []
-    //   this.terrace.action[i] = this.terrace.mixer.clipAction(anim)
-    //   this.terrace.action[i].play()
-    // })
+})
 
     this.terrace.traverse((child: any) => {
       if (!child.isMesh) {
@@ -219,10 +191,7 @@ export default class MainScene extends Scene3D {
       depth: 0.4,
       offset: { y: -1, z: 1.5 },
     })
-    //this.player.body.setFriction(0.8)
-    //this.player.body.setAngularFactor(-10, -10, 0)
 
-    // https://docs.panda3d.org/1.10/python/programming/physics/bullet/ccd
     this.player.body.setCcdMotionThreshold(1e-7)
     this.player.body.setCcdSweptSphereRadius(0.25)
   }
@@ -251,31 +220,8 @@ export default class MainScene extends Scene3D {
       child.material.metalness = 0
     })
 
-    // this.third.animationMixers.add(this.bird.anims.mixer)
-    // object.animations.forEach((animation) => {
-    //   if (animation.name) {
-    //     this.bird.anims.add(animation.name, animation)
-    //   }
-    // })
 
     this.bird.anims.play('idle')
-
-    //Add the player to the scene with a body
-    // this.third.add.existing(this.bird)
-    // this.third.physics.add.existing(this.bird, {
-    //   shape: 'box',
-    //   height: 0.25,
-    //   width: 0.25,
-    //   depth: 0.25,
-    //   offset: { y: -1, z: 0.25 },
-    // })
-    //this.bird.body.setFriction(0.8)
-    //this.bird.body.setAngularFactor(-10, -10, 0)
-
-    // https://docs.panda3d.org/1.10/python/programming/physics/bullet/ccd
-    // this.bird.body.setCcdMotionThreshold(1e-7)
-    // this.bird.body.setCcdSweptSphereRadius(0.25)
-  }
 
   private addCollisions() {
     // collision between player and bird (will set body.checkCollisions = true, on the player and the bird)
