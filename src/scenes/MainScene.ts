@@ -1,6 +1,5 @@
 import {
   ExtendedObject3D,
-  JoyStick,
   PointerDrag,
   PointerLock,
   Scene3D,
@@ -108,8 +107,7 @@ export default class MainScene extends Scene3D {
     directionalLight.intensity = 0.5
   }
 
-  private createCamera() {
-    }
+  private createCamera() {}
 
   private createScene() {
     // Create terrace
@@ -119,7 +117,6 @@ export default class MainScene extends Scene3D {
     // Add it to the scene
     this.terrace.add(this.terraceScene)
     this.third.add.existing(this.terrace)
-})
 
     this.terrace.traverse((child: any) => {
       if (!child.isMesh) {
@@ -168,6 +165,8 @@ export default class MainScene extends Scene3D {
 
       child.castShadow = true
       child.receiveShadow = true
+
+      //setting texture for the player
       child.material.roughness = 1
       child.material.metalness = 0
     })
@@ -191,7 +190,6 @@ export default class MainScene extends Scene3D {
       depth: 0.4,
       offset: { y: -1, z: 1.5 },
     })
-
     this.player.body.setCcdMotionThreshold(1e-7)
     this.player.body.setCcdSweptSphereRadius(0.25)
   }
@@ -216,12 +214,10 @@ export default class MainScene extends Scene3D {
 
       child.castShadow = true
       child.receiveShadow = true
-      child.material.roughness = 1
-      child.material.metalness = 0
     })
 
-
     this.bird.anims.play('idle')
+  }
 
   private addCollisions() {
     // collision between player and bird (will set body.checkCollisions = true, on the player and the bird)
@@ -283,7 +279,7 @@ export default class MainScene extends Scene3D {
     })
   }
 
-  update(time, delta) {
+  update() {
     // Early return if no player or player body
     if (!this.player || !this.player.body) {
       return
